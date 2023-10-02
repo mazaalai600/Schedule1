@@ -35,11 +35,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
   var options = [
-    'User',
-    'Admin',
+    'Student',
+    'teacher',
   ];
-  var _currentItemSelected = "User";
-  var role = "User";
+  var _currentItemSelected = "Student";
+  var role = "Student";
 
   void initState() {
     Firebase.initializeApp().whenComplete(() {
