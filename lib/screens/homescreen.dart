@@ -1,12 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:schedule/screens/chat_screen.dart';
+import 'package:schedule/models/schedule_model.dart';
 import 'package:schedule/widgets/grid_view.dart';
 import 'package:schedule/widgets/horizontal_day-list.dart';
 import 'package:schedule/widgets/popup.dart';
 import 'package:intl/intl.dart';
-// import 'package:google_fonts/google_fonts.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:line_icons/line_icons.dart';
 
 class HomeScreen extends StatefulWidget {
   static const route = '/home';
@@ -17,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController startTimeController = TextEditingController();
@@ -25,9 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<String> dayDependentTodos = [];
 
-  List<String> todoInformation = [
-    "MON,TEST1,TEST1,test1,test1",
-  ];
+  List<Todo> todoInformation = [];
 
   String weekday = "";
 
@@ -52,32 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void updateList() {
     dayDependentTodos.clear();
     for (int i = 0; i < todoInformation.length; i++) {
-      if (todoInformation[i].split(",")[0] == weekday) {
-        dayDependentTodos.add(todoInformation[i]);
+      if (todoInformation[i].day == weekday) {
+        dayDependentTodos.add(todoInformation[i].day);
       }
     }
   }
-
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Likes',
-      style: optionStyle,
-    ),
-    Text(
-      'Search',
-      style: optionStyle,
-    ),
-    Text(
-      'Profile',
-      style: optionStyle,
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -137,61 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 20,
-              color: Colors.black.withOpacity(.1),
-            )
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
-            child: GNav(
-              rippleColor: Colors.grey[300]!,
-              hoverColor: Colors.grey[100]!,
-              gap: 8,
-              activeColor: Colors.black,
-              iconSize: 24,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              duration: Duration(milliseconds: 400),
-              tabBackgroundColor: Colors.grey[100]!,
-              color: Colors.black,
-              tabs: [
-                GButton(
-                  icon: LineIcons.home,
-                  text: 'Home',
-                ),
-                GButton(
-                  icon: LineIcons.heart,
-                  text: 'Likes',
-                ),
-                GButton(
-                  icon: LineIcons.search,
-                  text: 'Search',
-                ),
-                GButton(
-                  icon: LineIcons.user,
-                  text: 'Profile',
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => ChatPage()));
-                  },
-                ),
-              ],
-              selectedIndex: _selectedIndex,
-              onTabChange: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
-            ),
-          ),
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -209,8 +128,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   titleController.text == "") {
                 showInSnackBar("Title or description can't be empty!");
               } else {
-                todoInformation.add(
-                    "$weekday,${titleController.text},${descriptionController.text},${startTimeController.text},${endTimeController.text}");
+                Todo newTodo = Todo(
+                  day: weekday,
+                  title: titleController.text,
+                  description: descriptionController.text,
+                  startTime: startTimeController.text,
+                  endTime: endTimeController.text,
+                );
+                FirebaseFirestore.instance
+                    .collection('yourFirestoreCollection')
+                    .add(newTodo.toMap());
+                // todoInformation.add(
+                //     "$weekday,${titleController.text},${descriptionController.text},${startTimeController.text},${endTimeController.text}");
+                todoInformation.add(newTodo);
                 updateList();
                 titleController.clear();
                 descriptionController.clear();
